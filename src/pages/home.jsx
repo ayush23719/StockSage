@@ -24,7 +24,10 @@ const Home = () => {
         >
           StockSage
         </Header>
-        <p className="subtext">Your Intelligent Stock Advisor</p>
+        <p className="subtext">
+          'Fetch' real-time stock data and 'Analyze' with AI. Empower your
+          trading decisions.
+        </p>
         <Grid columns="equal" stackable centered style={{ marginTop: "2em" }}>
           <Grid.Row verticalAlign="middle">
             <Grid.Column textAlign="center">

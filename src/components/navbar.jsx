@@ -41,10 +41,10 @@ const Navbar = () => {
           StockSage
         </Menu.Item>
         <Menu.Menu position="right">
-          <Menu.Item as={Link} to="/upload">
+          <Menu.Item as={Link} to="/stocks">
             Fetch
           </Menu.Item>
-          <Menu.Item as={Link} to="/search">
+          <Menu.Item as={Link} to="/analysis">
             Analyze
           </Menu.Item>
         </Menu.Menu>
