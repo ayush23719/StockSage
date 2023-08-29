@@ -1,0 +1,36 @@
+.navbar {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  transition: background-color 0.3s ease;
+  margin-top: 0 !important; /* Add this line */
+}
+
+.navbar.scrolled {
+  background-color: #f2f2f2 !important;
+  margin-top: 0 !important; /* Add this line */
+}
+
+/* Rest of the CSS remains the same */
+
+.navbar .item {
+  font-size: 1.5em !important;
+  color: white !important;
+}
+
+.navbar.scrolled .item {
+  color: black !important;
+}
+
+.navbar .right.menu .item:hover {
+  color: #808080 !important;
+}
+
+.navbar.scrolled .right.menu .item:hover {
+  color: #808080 !important;
+}
