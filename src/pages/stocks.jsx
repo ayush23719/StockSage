@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Container, Header } from "semantic-ui-react";
+import { Container, Header, Dropdown } from "semantic-ui-react";
 import backgroundImage from "../assets/stocks.jpg";
+import Papa from "papaparse";
+import axios from "axios";
 import "../styles/stocks.css";
 
 const Stocks = () => {
   const [inputClass, setInputClass] = useState("ui massive icon input");
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedStock, setSelectedStock] = useState("");
+  const [stockData, setStockData] = useState(null); // Store fetched stock data
 
   const handleResize = () => {
     if (window.innerWidth <= 768) {
@@ -14,6 +19,57 @@ const Stocks = () => {
     }
   };
 
+  const handleSearchChange = async (e) => {
+    const { value } = e.target;
+    setSelectedStock("");
+    setStockData(null);
+
+    try {
+      const response = await axios.get(
+        `https://api.twelvedata.com/stocks?symbol=${value}&apikey=4441b35408784a8c82f012854e729f80`
+      );
+      const data = response.data.data.map((stock) => ({
+        key: stock.symbol,
+        text: stock.name,
+        value: stock.symbol,
+      }));
+      setSuggestions(data);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    }
+  };
+
+  const handleSuggestionClick = async (e, data) => {
+    setSelectedStock(data.value);
+    console.log(selectedStock);
+    try {
+      // Calculate the start date for historical data (e.g., 5 years ago)
+      const endDate = new Date(); // Today's date
+      const startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 5); // Adjust the number of years as needed
+
+      // Format the start and end dates in YYYY-MM-DD format
+      const startDateStr = formatDate(startDate);
+      const endDateStr = formatDate(endDate);
+
+      const response = await axios.get(
+        `https://api.twelvedata.com/time_series?symbol=${data.value}&start_date=${startDateStr}&end_date=${endDateStr}&interval=1day&apikey=4441b35408784a8c82f012854e729f80`
+      );
+      const stockData = response.data.values; // Historical data
+
+      setStockData(stockData);
+      handleDownloadCSV();
+    } catch (error) {
+      console.error("Error fetching stock data:", error);
+    }
+  };
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
   useEffect(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -21,6 +77,25 @@ const Stocks = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  const handleDownloadCSV = () => {
+    if (stockData) {
+      // Convert the stock data to CSV format
+      const csv = Papa.unparse(stockData);
+
+      // Create a Blob to hold the CSV data and generate a download link
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+
+      // Create a hidden <a> element for downloading
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedStock}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
 
   return (
     <div
@@ -52,8 +127,25 @@ const Stocks = () => {
               className="prompt"
               type="text"
               placeholder="Type Something..."
+              onChange={handleSearchChange}
             />
             <i className="search icon"></i>
+            {suggestions.length > 0 && selectedStock === "" && (
+              <Dropdown
+                fluid
+                options={suggestions}
+                selection
+                onChange={handleSuggestionClick}
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  top: "100%", // Display below the search box
+                  left: 0,
+                  marginTop: "2px",
+                }}
+                open={suggestions.length > 0 && selectedStock === ""} // Open when suggestions available and no stock selected
+              />
+            )}
           </div>
           <div className="results"></div>
         </div>
