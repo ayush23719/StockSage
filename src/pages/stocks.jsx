@@ -104,10 +104,10 @@ const Stocks = () => {
   const dropdownStyle = {
     position: "absolute",
     width: "100%",
-    top: "100%", // Display below the search box
+    top: "100%",
     left: 0,
     marginTop: "2px",
-    maxHeight: "200px", // Set a maximum height for the dropdown
+    maxHeight: "200px",
   };
 
   return (
