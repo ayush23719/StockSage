@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Header, Dropdown } from "semantic-ui-react";
+import { Container, Header, Dropdown, Button } from "semantic-ui-react";
 import backgroundImage from "../assets/stocks.jpg";
 import Papa from "papaparse";
 import axios from "axios";
@@ -79,7 +79,7 @@ const Stocks = () => {
   }, []);
 
   const handleDownloadCSV = () => {
-    if (stockData) {
+    if (stockData && selectedStock) {
       // Convert the stock data to CSV format
       const csv = Papa.unparse(stockData);
 
@@ -89,12 +89,25 @@ const Stocks = () => {
 
       // Create a hidden <a> element for downloading
       const a = document.createElement("a");
+
+      // Set the filename to the selected stock symbol/name
+      const stockName =
+        suggestions.find((option) => option.value === selectedStock)?.text ||
+        selectedStock;
       a.href = url;
-      a.download = `${selectedStock}.csv`;
+      a.download = `${stockName}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     }
+  };
+  const dropdownStyle = {
+    position: "absolute",
+    width: "100%",
+    top: "100%", // Display below the search box
+    left: 0,
+    marginTop: "2px",
+    maxHeight: "200px", // Set a maximum height for the dropdown
   };
 
   return (
@@ -136,19 +149,32 @@ const Stocks = () => {
                 options={suggestions}
                 selection
                 onChange={handleSuggestionClick}
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  top: "100%", // Display below the search box
-                  left: 0,
-                  marginTop: "2px",
-                }}
+                style={dropdownStyle}
                 open={suggestions.length > 0 && selectedStock === ""} // Open when suggestions available and no stock selected
-              />
+              >
+                <Dropdown.Menu
+                  style={{ maxHeight: "150px", overflowY: "auto" }}
+                >
+                  {suggestions.map((option) => (
+                    <Dropdown.Item key={option.key} {...option} />
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
             )}
           </div>
           <div className="results"></div>
         </div>
+        {stockData && (
+          <div style={{ marginTop: "1em" }}>
+            <Button
+              primary
+              style={{ margin: "0 auto" }}
+              onClick={handleDownloadCSV}
+            >
+              Download CSV
+            </Button>
+          </div>
+        )}
       </Container>
       <Container textAlign="center" style={{ marginBottom: "1em" }}>
         <p style={{ color: "white" }}>Made with ❤️ by Ayush</p>
