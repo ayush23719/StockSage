@@ -10,6 +10,7 @@ const Stocks = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [selectedStock, setSelectedStock] = useState("");
   const [stockData, setStockData] = useState(null); // Store fetched stock data
+  const [tiingoStockData, setTiingoStockData] = useState(null); // Store Tiingo stock data
 
   const handleResize = () => {
     if (window.innerWidth <= 768) {
@@ -41,28 +42,35 @@ const Stocks = () => {
 
   const handleSuggestionClick = async (e, data) => {
     setSelectedStock(data.value);
-    console.log(selectedStock);
     try {
-      // Calculate the start date for historical data (e.g., 5 years ago)
       const endDate = new Date(); // Today's date
       const startDate = new Date();
-      startDate.setFullYear(endDate.getFullYear() - 5); // Adjust the number of years as needed
+      startDate.setFullYear(endDate.getFullYear() - 5);
 
-      // Format the start and end dates in YYYY-MM-DD format
       const startDateStr = formatDate(startDate);
       const endDateStr = formatDate(endDate);
 
-      const response = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${data.value}&start_date=${startDateStr}&end_date=${endDateStr}&interval=1day&apikey=4441b35408784a8c82f012854e729f80`
-      );
-      const stockData = response.data.values; // Historical data
+      // Create an object with the data to send to the backend
+      const requestData = {
+        symbol: data.value,
+        startDate: startDateStr,
+        endDate: endDateStr,
+      };
 
-      setStockData(stockData);
-      handleDownloadCSV();
+      // Send a POST request to your backend with the requestData
+      const tiingoResponse = await axios.post(
+        "http://127.0.0.1:3001/stocks",
+        requestData
+      );
+
+      const tiingoStockData = tiingoResponse.data;
+      setTiingoStockData(tiingoStockData);
+      handleDownloadCSV(tiingoStockData);
     } catch (error) {
       console.error("Error fetching stock data:", error);
     }
   };
+
   function formatDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -78,10 +86,10 @@ const Stocks = () => {
     };
   }, []);
 
-  const handleDownloadCSV = () => {
-    if (stockData && selectedStock) {
+  const handleDownloadCSV = (data) => {
+    if (data) {
       // Convert the stock data to CSV format
-      const csv = Papa.unparse(stockData);
+      const csv = Papa.unparse(data);
 
       // Create a Blob to hold the CSV data and generate a download link
       const blob = new Blob([csv], { type: "text/csv" });
@@ -101,6 +109,7 @@ const Stocks = () => {
       document.body.removeChild(a);
     }
   };
+
   const dropdownStyle = {
     position: "absolute",
     width: "100%",
@@ -164,12 +173,12 @@ const Stocks = () => {
           </div>
           <div className="results"></div>
         </div>
-        {stockData && (
+        {tiingoStockData && (
           <div style={{ marginTop: "1em" }}>
             <Button
               primary
               style={{ margin: "0 auto" }}
-              onClick={handleDownloadCSV}
+              onClick={() => handleDownloadCSV(tiingoStockData)}
             >
               Download CSV
             </Button>
