@@ -9,8 +9,8 @@ const Stocks = () => {
   const [inputClass, setInputClass] = useState("ui massive icon input");
   const [suggestions, setSuggestions] = useState([]);
   const [selectedStock, setSelectedStock] = useState("");
-  const [stockData, setStockData] = useState(null); // Store fetched stock data
-  const [tiingoStockData, setTiingoStockData] = useState(null); // Store Tiingo stock data
+  const [stockData, setStockData] = useState(null);
+  const [tiingoStockData, setTiingoStockData] = useState(null);
 
   const handleResize = () => {
     if (window.innerWidth <= 768) {
@@ -43,21 +43,19 @@ const Stocks = () => {
   const handleSuggestionClick = async (e, data) => {
     setSelectedStock(data.value);
     try {
-      const endDate = new Date(); // Today's date
+      const endDate = new Date();
       const startDate = new Date();
       startDate.setFullYear(endDate.getFullYear() - 5);
 
       const startDateStr = formatDate(startDate);
       const endDateStr = formatDate(endDate);
 
-      // Create an object with the data to send to the backend
       const requestData = {
         symbol: data.value,
         startDate: startDateStr,
         endDate: endDateStr,
       };
 
-      // Send a POST request to your backend with the requestData
       const tiingoResponse = await axios.post(
         "http://127.0.0.1:3001/stocks",
         requestData
@@ -65,7 +63,6 @@ const Stocks = () => {
 
       const tiingoStockData = tiingoResponse.data;
       setTiingoStockData(tiingoStockData);
-      handleDownloadCSV(tiingoStockData);
     } catch (error) {
       console.error("Error fetching stock data:", error);
     }
@@ -88,17 +85,13 @@ const Stocks = () => {
 
   const handleDownloadCSV = (data) => {
     if (data) {
-      // Convert the stock data to CSV format
       const csv = Papa.unparse(data);
 
-      // Create a Blob to hold the CSV data and generate a download link
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
 
-      // Create a hidden <a> element for downloading
       const a = document.createElement("a");
 
-      // Set the filename to the selected stock symbol/name
       const stockName =
         suggestions.find((option) => option.value === selectedStock)?.text ||
         selectedStock;
